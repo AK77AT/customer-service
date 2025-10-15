@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>客服工作台 - 董汀兰舞蹈</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 320px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+        }
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stats {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #07C160;
+            display: block;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .session-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        .session-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .session-item:hover {
+            background: #f8f9fa;
+        }
+        .session-item.active {
+            background: #e6f7ff;
+            border-left: 3px solid #1890ff;
+        }
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .session-name {
+            font-weight: bold;
+            color: #333;
+        }
+        .session-time {
+            font-size: 12px;
+            color: #999;
+        }
+        .session-preview {
+            font-size: 13px;
+            color: #666;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .unread-badge {
+            background: #ff4d4f;
+            color: white;
+            border-radius: 10px;
+            padding: 2px 6px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: white;
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .current-session {
+            font-weight: bold;
+            color: #333;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+        .message.customer {
+            justify-content: flex-start;
+        }
+        .message.service {
+            justify-content: flex-end;
+        }
+        .bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .customer .bubble {
+            background: white;
+            border: 1px solid #e0e0e0;
+            color: #333;
+        }
+        .service .bubble {
+            background: #95ec69;
+            color: #333;
+        }
+        .time {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            margin: 8px 0;
+        }
+        .input-area {
+            background: white;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .quick-reply {
+            margin-bottom: 15px;
+        }
+        .quick-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .quick-btn {
+            background: #f0f0f0;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-btn:hover {
+            background: #e6f7ff;
+            border-color: #1890ff;
+        }
+        .message-input-area {
+            display: flex;
+            gap: 10px;
+        }
+        .message-input {
+            flex: 1;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-size: 14px;
+            outline: none;
+        }
+        .message-input:focus {
+            border-color: #1890ff;
+        }
+        .send-btn {
+            background: #07C160;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 80px;
+        }
+        .send-btn:hover {
+            background: #06a350;
+        }
+        .send-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="stats">
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <span class="stat-number" id="pendingCount">0</span>
+                        <span class="stat-label">待接入</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="connectedCount">0</span>
+                        <span class="stat-label">已接入</span>
+                    </div>
+                </div>
+            </div>
+            <div class="session-list" id="sessionList">
+                <!-- 会话列表动态生成 -->
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main">
+            <div class="header">
+                <h2>客服工作台 - 董汀兰舞蹈</h2>
+                <div class="admin-info">
+                    <span>管理员</span>
+                </div>
+            </div>
+
+            <div class="chat-area">
+                <div class="chat-header">
+                    <div class="current-session" id="currentSession">请选择一个会话</div>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message service">
+                        <div class="bubble">请从左侧选择一个用户会话开始聊天</div>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <div class="quick-reply">
+                        <div class="quick-buttons">
+                            <button class="quick-btn" onclick="quickReply('请问有什么可以帮助您？')">请问有什么可以帮助您？</button>
+                            <button class="quick-btn" onclick="quickReply('稍等，我正在处理中')">稍等，我正在处理中</button>
+                            <button class="quick-btn" onclick="quickReply('您好，请提供更多信息')">您好，请提供更多信息</button>
+                            <button class="quick-btn" onclick="quickReply('感谢您的咨询')">感谢您的咨询</button>
+                        </div>
+                    </div>
+                    <div class="message-input-area">
+                        <input type="text" class="message-input" id="messageInput" placeholder="输入回复消息..." maxlength="500">
+                        <button class="send-btn" id="sendBtn" onclick="sendServiceMessage()">发送</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据
+        let sessions = [];
+        let currentSessionId = null;
+        let messages = {};
+
+        // 初始化
+        function init() {
+            updateStats();
+            setInterval(simulateNewUser, 5000); // 每5秒模拟新用户
+        }
+
+        // 模拟新用户接入
+        function simulateNewUser() {
+            if (Math.random() > 0.7) { // 30%概率新用户
+                const userId = 'user_' + Date.now();
+                const sessionId = 'session_' + Date.now();
+                
+                const newSession = {
+                    id: sessionId,
+                    userId: userId,
+                    name: '用户' + Math.floor(Math.random() * 10000),
+                    time: new Date().toLocaleTimeString('zh-CN'),
+                    preview: '你好',
+                    unread: true,
+                    messages: [
+                        { type: 'customer', content: '你好', time: new Date().toLocaleTimeString('zh-CN') }
+                    ]
+                };
+                
+                sessions.unshift(newSession);
+                messages[sessionId] = newSession.messages;
+                updateSessionList();
+                updateStats();
+            }
+        }
+
+        // 更新会话列表
+        function updateSessionList() {
+            const sessionList = document.getElementById('sessionList');
+            sessionList.innerHTML = '';
+
+            sessions.forEach(session => {
+                const sessionItem = document.createElement('div');
+                sessionItem.className = `session-item ${currentSessionId === session.id ? 'active' : ''}`;
+                sessionItem.innerHTML = `
+                    <div class="session-header">
+                        <span class="session-name">
+                            ${session.name}
+                            ${session.unread ? '<span class="unread-badge">新</span>' : ''}
+                        </span>
+                        <span class="session-time">${session.time}</span>
+                    </div>
+                    <div class="session-preview">${session.preview}</div>
+                `;
+                sessionItem.onclick = () => selectSession(session.id);
+                sessionList.appendChild(sessionItem);
+            });
+        }
+
+        // 更新统计
+        function updateStats() {
+            const pendingCount = sessions.filter(s => s.unread).length;
+            const connectedCount = sessions.length;
+
+            document.getElementById('pendingCount').textContent = pendingCount;
+            document.getElementById('connectedCount').textContent = connectedCount;
+        }
+
+        // 选择会话
+        function selectSession(sessionId) {
+            currentSessionId = sessionId;
+            const session = sessions.find(s => s.id === sessionId);
+            if (session) {
+                session.unread = false;
+                document.getElementById('currentSession').textContent = `正在与 ${session.name} 聊天`;
+                loadMessages(sessionId);
+                updateSessionList();
+                updateStats();
+            }
+        }
+
+        // 加载消息
+        function loadMessages(sessionId) {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = '';
+
+            if (messages[sessionId]) {
+                messages[sessionId].forEach(msg => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${msg.type}`;
+                    messageDiv.innerHTML = `<div class="bubble">${msg.content}</div>`;
+                    chatMessages.appendChild(messageDiv);
+                });
+            }
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            updateSendButton();
+        }
+
+        // 发送客服消息
+        function sendServiceMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || !currentSessionId) return;
+
+            if (!messages[currentSessionId]) {
+                messages[currentSessionId] = [];
+            }
+
+            // 添加消息
+            messages[currentSessionId].push({
+                type: 'service',
+                content: message,
+                time: new Date().toLocaleTimeString('zh-CN')
+            });
+
+            // 更新会话预览
+            const session = sessions.find(s => s.id === currentSessionId);
+            if (session) {
+                session.preview = message;
+                session.time = new Date().toLocaleTimeString('zh-CN');
+            }
+
+            loadMessages(currentSessionId);
+            updateSessionList();
+            input.value = '';
+            updateSendButton();
+
+            // 这里应该通过WebSocket发送给用户
+            console.log('发送消息给用户:', message);
+        }
+
+        // 快捷回复
+        function quickReply(text) {
+            if (!currentSessionId) {
+                alert('请先选择一个会话');
+                return;
+            }
+
+            document.getElementById('messageInput').value = text;
+            updateSendButton();
+        }
+
+        // 更新发送按钮状态
+        function updateSendButton() {
+            const input = document.getElementById('messageInput');
+            const button = document.getElementById('sendBtn');
+            button.disabled = !input.value.trim() || !currentSessionId;
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+            
+            // 输入框事件
+            document.getElementById('messageInput').addEventListener('input', updateSendButton);
+            document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendServiceMessage();
+                }
+            });
+        });
+
+        // 实际部署时的WebSocket代码
+        /*
+        const socket = new WebSocket('wss://你的域名.com/admin-websocket');
+        
+        socket.onopen = function() {
+            console.log('客服后台连接成功');
+        };
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'user_message') {
+                // 处理用户消息
+                handleUserMessage(data);
+            } else if (data.type === 'user_connected') {
+                // 处理用户连接
+                handleUserConnect(data);
+            }
+        };
+
+        function handleUserMessage(data) {
+            // 添加用户消息到对应会话
+            // 更新界面等
+        }
+        */
+    </script>
+</body>
+</html>
